@@ -9,7 +9,7 @@ ft_strcpy
 
 .loop:
 	mov		cl, byte [rsi]
-	mov		byte [rdi], cli
+	mov		byte [rdi], cl
 	test	cl, cl
 	jz		.done
 	inc		rsi

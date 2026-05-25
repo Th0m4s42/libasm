@@ -28,6 +28,7 @@ TEST_DIR	:= test
 #================================================
 
 SRCS		:= $(SRC_DIR)/ft_strlen.s \
+				$(SRC_DIR)/ft_strcpy.s \
 
 OBJS		:= $(SRCS:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
 
