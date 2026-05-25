@@ -1,9 +1,20 @@
 ; ft_strcpy
+; char *strcpy(char *dst, const char *src)
 
 section .text
 	global ft_strcpy
 
 ft_strcpy
-	xor rax, rax			; put rax to 0
+	mov		rax, rdi
+
 .loop:
-.end:
+	mov		cl, byte [rsi]
+	mov		byte [rdi], cli
+	test	cl, cl
+	jz		.done
+	inc		rsi
+	inc		rdi
+	jmp		.loop
+
+.done:
+	ret
