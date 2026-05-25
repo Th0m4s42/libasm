@@ -10,21 +10,29 @@ ARFLAGS	:= rcs
 AS		:= nasm
 ASFLAGS	:= -f elf64
 
+CC		:= cc
+CFLAGS	:= -Wall -Wextra -Werror
+
 #================================================
 # DIRECTORY
 #================================================
 
-SRC_DIR	:= srcs/
-OBJ_DIR	:= objs/
-BON_DIR	:= bonus/
+INC_DIR		:= incs
+SRC_DIR		:= srcs
+OBJ_DIR		:= objs
+BON_DIR		:= bonus
+TEST_DIR	:= test
 
 #================================================
 # SOURCES
 #================================================
 
-SRCS	:= $(SRC_DIR)/ft_strlen.s /
+SRCS		:= $(SRC_DIR)/ft_strlen.s \
 
-OBJS	:= $(SRCS:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
+OBJS		:= $(SRCS:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
+
+TEST_SRC	:= $(TEST_DIR)/main.c
+TEST_BIN	:= test_asm
 
 #================================================
 # COLORS
@@ -48,15 +56,22 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 # Creates the static library
 $(NAME): $(OBJS)
 	$(AR) $(ARFLAGS) $(NAME) $(OBJS)
-	@echo "$(BLUE)$(NAME) created$(RESET)"
+	@echo -e "$(BLUE)$(NAME) created$(RESET)"
+
+test: $(NAME)
+	$(CC) $(CFLAGS) -I$(INC_DIR) $(TEST_SRC) -L. -lasm -o $(TEST_BIN)
+	@echo -e "$(GREEN)$(TEST_BIN) compiled$(RESET)"
+	@echo -e "$(BLUE)Running tests...$(RESET)"
+	@./$(TEST_BIN)
 
 clean:
 	@rm -rf $(OBJ_DIR)
-	@echo "$(RED)Objects deleted$(RESET)"
+	@echo -e "$(RED)Objects deleted$(RESET)"
 
 fclean: clean
 	@rm -f $(NAME)
-	@echo "$(RED)$(NAME) deleted$(RESET)"
+	@rm -f $(TEST_BIN)
+	@echo -e "$(RED)$(NAME) deleted$(RESET)"
 
 re: fclean all
 
