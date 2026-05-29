@@ -1,6 +1,6 @@
+#include <libasm.h>
 #include <stdio.h>
 #include <string.h>
-#include <libasm.h>
 
 // Couleurs
 #define GREEN	"\033[0;32m"
@@ -16,12 +16,24 @@
 			" | C: %zu | ASM: %zu\n", (size_t)c_result, (size_t)asm_result);
 
 // Macro pour comparer des strings (résultat de strcpy/strdup)
-#define TEST_STR(name, c_result, asm_result)                        \
-	if (strcmp((c_result), (asm_result)) == 0)                      \
+#define TEST_STR(name, c_result, asm_result)						\
+	if (strcmp((c_result), (asm_result)) == 0)						\
 		printf(GREEN "[OK] " RESET name " -> \"%s\"\n", asm_result);\
-	else                                                            \
-		printf(RED "[KO] " RESET name                               \
+	else															\
+		printf(RED "[KO] " RESET name								\
 			" | C: \"%s\" | ASM: \"%s\"\n", c_result, asm_result);
+
+
+// Macro pour strcmp : compare les SIGNES, pas les valeurs exactes
+#define TEST_CMP(name, c_result, asm_result)							\
+	if (((c_result) < 0 && (asm_result) < 0) ||							\
+		((c_result) > 0 && (asm_result) > 0) ||							\
+		((c_result) == 0 && (asm_result) == 0))							\
+		printf(GREEN "[OK] " RESET name									\
+			" | C: %d | ASM: %d\n", c_result, asm_result);				\
+	else																\
+		printf(RED "[KO] " RESET name									\
+			" | C: %d | ASM: %d\n", c_result, asm_result);
 
 int main(void)
 {
@@ -70,7 +82,32 @@ int main(void)
 		printf(GREEN "[OK] " RESET "return value == dst\n");
 	else
 		printf(RED "[KO] " RESET "return value != dst\n");
-	
+
+	printf("\n===== ft_strcmp =====\n");
+
+	// Égalité
+	TEST_CMP("equal strings",	strcmp("hello", "hello"),	ft_strcmp("hello", "hello"));
+	TEST_CMP("both empty",		strcmp("", ""),				ft_strcmp("", ""));
+	TEST_CMP("one char equal",	strcmp("a", "a"),			ft_strcmp("a", "a"));
+
+	// s1 < s2
+	TEST_CMP("abc vs abd",		strcmp("abc", "abd"),		ft_strcmp("abc", "abd"));
+	TEST_CMP("a vs b",			strcmp("a", "b"),			ft_strcmp("a", "b"));
+	TEST_CMP("empty vs hello",	strcmp("", "hello"),		ft_strcmp("", "hello"));
+
+	// s1 > s2
+	TEST_CMP("abd vs abc",		strcmp("abd", "abc"),		ft_strcmp("abd", "abc"));
+	TEST_CMP("b vs a",			strcmp("b", "a"),			ft_strcmp("b", "a"));
+	TEST_CMP("hello vs empty",	strcmp("hello", ""),		ft_strcmp("hello", ""));
+
+	// Longueurs différentes (préfixe)
+	TEST_CMP("hello vs hello!",	strcmp("hello", "hello!"),	ft_strcmp("hello", "hello!"));
+	TEST_CMP("hello! vs hello",	strcmp("hello!", "hello"),	ft_strcmp("hello!", "hello"));
+
+	// Caractères spéciaux / signed vs unsigned
+	TEST_CMP("\\x7f vs \\x80",	strcmp("\x7f", "\x80"),		ft_strcmp("\x7f", "\x80"));
+	TEST_CMP("ascii high",		strcmp("é", "e"),			ft_strcmp("é", "e"));
+
 	printf("\n");
 
 	return (0);

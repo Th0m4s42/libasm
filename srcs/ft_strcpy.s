@@ -4,7 +4,7 @@
 section .text
 	global ft_strcpy			; make ft_strcpy visible
 
-ft_strcpy
+ft_strcpy:
 	mov		rax, rdi			; put first argument (destinaion) in accumalotor(rax)
 
 .loop:
