@@ -30,6 +30,8 @@ TEST_DIR	:= test
 SRCS		:= $(SRC_DIR)/ft_strlen.s \
 				$(SRC_DIR)/ft_strcpy.s \
 				$(SRC_DIR)/ft_strcmp.s \
+				$(SRC_DIR)/ft_write.s \
+				$(SRC_DIR)/ft_read.s \
 
 OBJS		:= $(SRCS:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
 
@@ -61,7 +63,7 @@ $(NAME): $(OBJS)
 	@echo -e "$(BLUE)$(NAME) created$(RESET)"
 
 test: $(NAME)
-	$(CC) $(CFLAGS) -I$(INC_DIR) $(TEST_SRC) -L. -lasm -o $(TEST_BIN)
+	$(CC) -I$(INC_DIR) $(TEST_SRC) -L. -lasm -o $(TEST_BIN)
 	@echo -e "$(GREEN)$(TEST_BIN) compiled$(RESET)"
 	@echo -e "$(BLUE)Running tests...$(RESET)"
 	@./$(TEST_BIN)

@@ -1,15 +1,21 @@
 ; ft_write
-; ssize_t write(int fd, const void buf[count], size_t count);
+; ssize_t write(int fd, const void *buf, size_t count);
 
 section .text
-	global ft_write
+	global	ft_write
+	extern	__errno_location
 
-ft_write
-	xor			rax, rax ;
+ft_write:
+	mov		rax, 1
+	syscall
+	cmp		rax, 0
+	jl		.error_handler
+	ret
 
-.loop
-
-.error_handler.
-
-.done
+.error_handler:
+	neg		rax
+	mov		r8, rax
+	call	__errno_location wrt ..plt
+	mov		[rax], r8d
+	mov		rax, -1
 	ret

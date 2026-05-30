@@ -1,6 +1,9 @@
+#include <errno.h>
+#include <fcntl.h>
 #include <libasm.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 // Couleurs
 #define GREEN	"\033[0;32m"
@@ -25,18 +28,29 @@
 
 
 // Macro pour strcmp : compare les SIGNES, pas les valeurs exactes
-#define TEST_CMP(name, c_result, asm_result)							\
-	if (((c_result) < 0 && (asm_result) < 0) ||							\
-		((c_result) > 0 && (asm_result) > 0) ||							\
-		((c_result) == 0 && (asm_result) == 0))							\
-		printf(GREEN "[OK] " RESET name									\
-			" | C: %d | ASM: %d\n", c_result, asm_result);				\
-	else																\
-		printf(RED "[KO] " RESET name									\
+#define TEST_CMP(name, c_result, asm_result)				\
+	if (((c_result) < 0 && (asm_result) < 0) ||				\
+		((c_result) > 0 && (asm_result) > 0) ||				\
+		((c_result) == 0 && (asm_result) == 0))				\
+		printf(GREEN "[OK] " RESET name						\
+			" | C: %d | ASM: %d\n", c_result, asm_result);	\
+	else													\
+		printf(RED "[KO] " RESET name						\
 			" | C: %d | ASM: %d\n", c_result, asm_result);
+
+// Macro pour tester write/read : compare valeur de retour ET errno
+#define TEST_IO(name, c_ret, c_err, asm_ret, asm_err)				\
+	if ((c_ret) == (asm_ret) && (c_err) == (asm_err))				\
+		printf(GREEN "[OK] " RESET name								\
+			" | ret: %zd | errno: %d\n", (ssize_t)asm_ret, asm_err);\
+	else															\
+		printf(RED "[KO] " RESET name								\
+			" | C: ret=%zd errno=%d | ASM: ret=%zd errno=%d\n",		\
+			(ssize_t)c_ret, c_err, (ssize_t)asm_ret, asm_err);
 
 int main(void)
 {
+	setbuf(stdout, NULL);
 	printf("\n===== ft_strlen =====\n");
 
 	// Cas normaux
@@ -78,6 +92,7 @@ int main(void)
 	// Vérifier que strcpy retourne bien dst
 	char buf[50];
 	char *ret = ft_strcpy(buf, "return test");
+
 	if (ret == buf)
 		printf(GREEN "[OK] " RESET "return value == dst\n");
 	else
@@ -107,6 +122,136 @@ int main(void)
 	// Caractères spéciaux / signed vs unsigned
 	TEST_CMP("\\x7f vs \\x80",	strcmp("\x7f", "\x80"),		ft_strcmp("\x7f", "\x80"));
 	TEST_CMP("ascii high",		strcmp("é", "e"),			ft_strcmp("é", "e"));
+
+	printf("\n===== ft_write =====\n");
+	
+	ssize_t c_ret, asm_ret;
+	int c_err, asm_err;
+
+	// --- Cas normal : écrire sur stdout ---
+	printf("  [C  ] ");
+	errno = 0;
+	c_ret = write(1, "hello\n", 6);
+	c_err = errno;
+
+	printf("  [ASM] ");
+	errno = 0;
+	asm_ret = ft_write(1, "hello\n", 6);
+	asm_err = errno;
+	TEST_IO("write stdout", c_ret, c_err, asm_ret, asm_err);
+
+	// --- Écrire 0 octet ---
+	errno = 0;
+	c_ret = write(1, "", 0);
+	c_err = errno;
+	errno = 0;
+	asm_ret = ft_write(1, "", 0);
+	asm_err = errno;
+	TEST_IO("write 0 bytes", c_ret, c_err, asm_ret, asm_err);
+
+	// --- fd invalide (-1) → doit set errno = EBADF (9) ---
+	errno = 0;
+	c_ret = write(-1, "fail", 4);
+	c_err = errno;
+	errno = 0;
+	asm_ret = ft_write(-1, "fail", 4);
+	asm_err = errno;
+	TEST_IO("write fd=-1 (EBADF)", c_ret, c_err, asm_ret, asm_err);
+
+	// --- fd fermé ---
+	errno = 0;
+	c_ret = write(42, "fail", 4);
+	c_err = errno;
+	errno = 0;
+	asm_ret = ft_write(42, "fail", 4);
+	asm_err = errno;
+	TEST_IO("write fd=42 (EBADF)", c_ret, c_err, asm_ret, asm_err);
+
+	// --- buffer NULL avec fd valide → EFAULT ---
+	errno = 0;
+	c_ret = write(1, NULL, 10);
+	c_err = errno;
+	errno = 0;
+	asm_ret = ft_write(1, NULL, 10);
+	asm_err = errno;
+	TEST_IO("write NULL buf (EFAULT)", c_ret, c_err, asm_ret, asm_err);
+
+	printf("\n===== ft_read =====\n");
+
+	char buf_c[100];
+	char buf_asm[100];
+
+	// --- Lire depuis un fichier valide ---
+	// Crée un fichier de test
+	int fd_w = open("/tmp/libasm_test.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	write(fd_w, "Hello libasm!", 13);
+	close(fd_w);
+
+	int fd_c = open("/tmp/libasm_test.txt", O_RDONLY);
+	errno = 0;
+	c_ret = read(fd_c, buf_c, 13);
+	c_err = errno;
+	buf_c[c_ret > 0 ? c_ret : 0] = '\0';
+	close(fd_c);
+
+	int fd_asm = open("/tmp/libasm_test.txt", O_RDONLY);
+	errno = 0;
+	asm_ret = ft_read(fd_asm, buf_asm, 13);
+	asm_err = errno;
+	buf_asm[asm_ret > 0 ? asm_ret : 0] = '\0';
+	close(fd_asm);
+
+	TEST_IO("read file", c_ret, c_err, asm_ret, asm_err);
+	TEST_STR("read content", buf_c, buf_asm);
+
+	// --- Lire 0 octet ---
+	fd_c = open("/tmp/libasm_test.txt", O_RDONLY);
+	errno = 0;
+	c_ret = read(fd_c, buf_c, 0);
+	c_err = errno;
+	close(fd_c);
+
+	fd_asm = open("/tmp/libasm_test.txt", O_RDONLY);
+	errno = 0;
+	asm_ret = ft_read(fd_asm, buf_asm, 0);
+	asm_err = errno;
+	close(fd_asm);
+	TEST_IO("read 0 bytes", c_ret, c_err, asm_ret, asm_err);
+
+	// --- fd invalide (-1) → EBADF ---
+	errno = 0;
+	c_ret = read(-1, buf_c, 10);
+	c_err = errno;
+	errno = 0;
+	asm_ret = ft_read(-1, buf_asm, 10);
+	asm_err = errno;
+	TEST_IO("read fd=-1 (EBADF)", c_ret, c_err, asm_ret, asm_err);
+
+	// --- fd non ouvert ---
+	errno = 0;
+	c_ret = read(42, buf_c, 10);
+	c_err = errno;
+	errno = 0;
+	asm_ret = ft_read(42, buf_asm, 10);
+	asm_err = errno;
+	TEST_IO("read fd=42 (EBADF)", c_ret, c_err, asm_ret, asm_err);
+
+	// --- buffer NULL → EFAULT ---
+	fd_c = open("/tmp/libasm_test.txt", O_RDONLY);
+	errno = 0;
+	c_ret = read(fd_c, NULL, 10);
+	c_err = errno;
+	close(fd_c);
+
+	fd_asm = open("/tmp/libasm_test.txt", O_RDONLY);
+	errno = 0;
+	asm_ret = ft_read(fd_asm, NULL, 10);
+	asm_err = errno;
+	close(fd_asm);
+	TEST_IO("read NULL buf (EFAULT)", c_ret, c_err, asm_ret, asm_err);
+
+	// Cleanup
+	unlink("/tmp/libasm_test.txt");
 
 	printf("\n");
 
