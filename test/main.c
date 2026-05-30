@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <libasm.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -253,7 +254,73 @@ int main(void)
 	// Cleanup
 	unlink("/tmp/libasm_test.txt");
 
-	printf("\n");
+// ========== ft_strdup ==========
+	printf("\n===== ft_strdup =====\n");
 
+	char *c_dup, *asm_dup;
+
+	// --- Cas normal ---
+	c_dup   = strdup("hello");
+	asm_dup = ft_strdup("hello");
+	TEST_STR("hello", c_dup, asm_dup);
+	free(c_dup);
+	free(asm_dup);
+
+	// --- String vide ---
+	c_dup   = strdup("");
+	asm_dup = ft_strdup("");
+	TEST_STR("empty", c_dup, asm_dup);
+	free(c_dup);
+	free(asm_dup);
+
+	// --- Un seul caractère ---
+	c_dup   = strdup("a");
+	asm_dup = ft_strdup("a");
+	TEST_STR("one char", c_dup, asm_dup);
+	free(c_dup);
+	free(asm_dup);
+
+	// --- Longue string ---
+	c_dup   = strdup("Hello World 42 libasm project!");
+	asm_dup = ft_strdup("Hello World 42 libasm project!");
+	TEST_STR("long string", c_dup, asm_dup);
+	free(c_dup);
+	free(asm_dup);
+
+	// --- Caractères spéciaux ---
+	c_dup   = strdup("with\nnewline\there");
+	asm_dup = ft_strdup("with\nnewline\there");
+	TEST_STR("special chars", c_dup, asm_dup);
+	free(c_dup);
+	free(asm_dup);
+
+	// --- Pointeur différent de la source ---
+	const char *src = "independent";
+	asm_dup = ft_strdup(src);
+	if (asm_dup != src && strcmp(asm_dup, src) == 0)
+		printf(GREEN "[OK] " RESET "different pointer, same content\n");
+	else
+		printf(RED   "[KO] " RESET "pointer or content issue\n");
+	free(asm_dup);
+
+	// --- Indépendance mémoire (modif sans toucher l'original) ---
+	const char *original = "modifiable";
+	asm_dup = ft_strdup(original);
+	asm_dup[0] = 'M';
+	if (original[0] == 'm' && asm_dup[0] == 'M')
+		printf(GREEN "[OK] " RESET "dup is writable & independent\n");
+	else
+		printf(RED   "[KO] " RESET "dup modification affected original\n");
+	free(asm_dup);
+
+	// --- Vérifier la longueur ---
+	asm_dup = ft_strdup("length check");
+	if (strlen(asm_dup) == 12)
+		printf(GREEN "[OK] " RESET "correct length (12)\n");
+	else
+		printf(RED   "[KO] " RESET "wrong length: %zu\n", strlen(asm_dup));
+	free(asm_dup);
+
+	printf("\n");
 	return (0);
 }

@@ -5,7 +5,7 @@ section .text
 	global ft_strcpy			; make ft_strcpy visible
 
 ft_strcpy:
-	mov		rax, rdi			; put first argument (destinaion) in accumalotor(rax)
+	mov		rax, rdi			; put first argument (destinaion) in accumalotor (rax)
 
 .loop:
 	mov		cl, byte [rsi]		; read from source
