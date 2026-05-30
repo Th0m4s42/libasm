@@ -1,5 +1,5 @@
 ; ft_strdup
-; char *strdup(const char *s);
+; char *strdup(const char *s)
 
 section .text
 	global	ft_strdup
