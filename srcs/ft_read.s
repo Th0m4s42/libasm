@@ -8,14 +8,15 @@ section .text
 ft_read:
 	xor		eax, eax
 	syscall
-	cmp		rax, 0
-	jl		.error_handler
+	test	rax, rax
+	js		.error_handler
 	ret
 
 .error_handler:
 	neg		rax
-	mov		r8, rax
+	push	rax
 	call	__errno_location wrt ..plt
-	mov		[rax], r8d
+	pop		rax
+	mov		[rax], edi
 	mov		rax, -1
 	ret
