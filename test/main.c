@@ -130,12 +130,12 @@ int main(void)
 	int c_err, asm_err;
 
 	// --- Cas normal : écrire sur stdout ---
-	printf("  [C  ] ");
+	printf("[C  ] ");
 	errno = 0;
 	c_ret = write(1, "hello\n", 6);
 	c_err = errno;
 
-	printf("  [ASM] ");
+	printf("[ASM] ");
 	errno = 0;
 	asm_ret = ft_write(1, "hello\n", 6);
 	asm_err = errno;
