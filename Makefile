@@ -3,6 +3,7 @@
 #================================================
 
 NAME	:= libasm.a
+NAMEB	:= libasm_bonus.a
 
 AR		:= ar
 ARFLAGS	:= rcs
@@ -39,7 +40,7 @@ BONUS	:= $(BON_DIR)/ft_atoi_base.s \
 
 OBJS		:= $(SRCS:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
 
-BON_OBJ_DIR	:= $(BONUS:$(BON_DIR)/%.s=$(BON_OBJ_DIR)%.o)
+BON_OBJS	:= $(BONUS:$(BON_DIR)/%.s=$(BON_OBJ_DIR)/%.o)
 
 TEST_SRC	:= $(TEST_DIR)/main.c
 TEST_SRC_B	:= $(TEST_DIR)/bonus.c
@@ -69,14 +70,18 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 	@mkdir -p $(OBJ_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
+$(BON_OBJ_DIR)/%.o: $(BON_DIR)/%.s
+	@mkdir -p $(BON_OBJ_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
 # Creates the static library
 $(NAME): $(OBJS)
 	$(AR) $(ARFLAGS) $(NAME) $(OBJS)
 	@echo -e "$(BLUE)$(NAME) created$(RESET)"
 
 # Creates the bonus static library
-$(NAMEB): $(BON_OBJ_DIR)
-	$(AR) $(ARFLAGS) $(NAMEB) $(BON_OBJ_DIR)
+$(NAMEB): $(BON_OBJS)
+	$(AR) $(ARFLAGS) $(NAMEB) $(BON_OBJS)
 	@echo -e "$(BLUE)$(NAMEB) created$(RESET)"
 
 test: $(NAME)
@@ -85,8 +90,8 @@ test: $(NAME)
 	@echo -e "$(BLUE)Running tests...$(RESET)"
 	@./$(TEST_BIN)
 
-test_b: $(NAMEB)
-	$(CC) -I$(INC_DIR) $(TEST_SRC_B) -L. -lasm -o $(TEST_BIN_B)
+test_b: $(NAME) $(NAMEB)
+	$(CC) -I$(INC_DIR) $(TEST_SRC_B) -L. -lasm_bonus -lasm -o $(TEST_BIN_B)
 	@echo -e "$(GREEN)$(TEST_BIN_B) compiled$(RESET)"
 	@echo -e "$(BLUE)Running tests...$(RESET)"
 	@./$(TEST_BIN_B)
