@@ -37,6 +37,7 @@ SRCS		:= $(SRC_DIR)/ft_strlen.s \
 				$(SRC_DIR)/ft_strdup.s
 
 BONUS	:= $(BON_DIR)/ft_atoi_base.s \
+			$(BON_DIR)/ft_list_push_front.s \
 
 OBJS		:= $(SRCS:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
 
