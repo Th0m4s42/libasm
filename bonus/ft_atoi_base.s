@@ -1,57 +1,89 @@
-; ft_atoi_base
-; int ft_atoi_base(char *str, char *base)
+;ft_atoi_base
+
+;	int ft_atoi_base(char *str, char *base)
+;	@convert a string to a integer
+;	@the string to convert, the base used for the convertion
+;	@return a integer
 
 section .text
 	global	ft_atoi_base
 	extern	ft_strlen
 
-check_base:
+
+is_whitespace:
+	cmp		dil, ' '
+	je		.yes
+	cmp		dil, 9
+	jb		.no
+	cmp		dil, 13
+	jbe		.yes
+.no:
+	xor		eax, eax
+	ret
+.yes:
+	mov 	eax, 1
+	ret
+
+validate_base:
 	sub		rsp, 8				; align stack for call
 	mov		rdi, rsi
+	push	rsi
 	call	ft_strlen
+	pop		rsi
 	add		rsp, 8
-	cmp		rax, 2
-	jl		.invalid
 
-	xor		rcx, rcx
-.outer:
-	cmp		rcx, rax
-	jge		.valid
-	mov		dl, [rsi + rcx]
+	cmp		rax, 2
+	jb		.invalid
+
+	mov		rcx, rax
+	xor		r8, r8				; r8 = 1 (index external loop)
+.loop_i:
+	cmp		r8, rcx
+	jae		.valid
+
+	movzx	edx, byte [rsi + r8] ; dl = base[i]
+
 	cmp		dl, '+'
 	je		.invalid
 	cmp		dl, '-'
 	je		.invalid
-	cmp		dl, ' '
-	je		.invalid
-	cmp		dl, 9
-	jl		.ok_char
-	cmp		dl, 13
-	jle		.invalid
-.ok_char:
-	lea		r8, [rcx + 1]
-.inner:
-	cmp		r8, rax
-	jge		.next
-	cmp		dl, [rsi + r8]
-	je		.invalid
-	inc		r8
-	jmp		.inner
-.next:
-	inc		rcx
-	jmp		.outer
 
-.invalid:
-	xor		eax, eax
+	push	rcx
+	push	r8
+	mov		dil, dl
+	call	is_whitespace
+	pop		r8
+	pop		rcx
+	test	al, al
+	jnz		.invalid
+
+	lea		r9, [r8 + 1]	; r9 = jae
+.loop_j:
+	cmp		r9, rcx
+	jae		.next_i
+	cmp		dl, [rsi + r9]
+	je		.invalid
+	inc		r9
+	jmp		.loop_j
+
+.next_i:
+	inc		r8
+	jmp		.loop_i
+
 .valid:
+	mov		rax, rcx
+	ret
+.invalid:
+	xor		eax, eax			; Return 0
 	ret
 
-find_char:
+get_char_index:
 	xor		rax, rax
 .loop:
 	cmp		rax, rcx
-	jge		.notfound
-	cmp		dil, [rsi + rax]
+	jae		.notfound
+	movzx	edx, byte [rsi + rax]
+	cmp		dl, dil
 	je		.done
 	inc		rax
 	jmp		.loop
@@ -61,6 +93,8 @@ find_char:
 	ret
 
 ft_atoi_base:
+	push	rbp
+	mov		rbp, rsp
 	push	rbx
 	push	r12
 	push	r13
@@ -71,25 +105,22 @@ ft_atoi_base:
 	mov		r13, rsi
 
 	mov		rsi, r13
-	call	check_base
+	call	validate_base
 	test	rax, rax
 	jz		.ret_zero
 	mov		r14, rax
 
 .skip_ws:
-	movzx	eax, byte [r12]
-	cmp		al, ' '
-	je		.adv
-	cmp		al, 9
-	jl		.signs
-	cmp		al, 13
-	jle		.adv
-	jmp		.signs
-.adv:
+	movzx	edi, byte [r12]
+	test		dil, dil
+	jz		.done
+	call	is_whitespace
+	test	al, al
+	jz		.parse_signs
 	inc		r12
 	jmp		.skip_ws
 
-.signs:
+.parse_signs:
 	mov		ebx, 1
 .sign_loop:
 	movzx	eax, byte [r12]
@@ -112,13 +143,17 @@ ft_atoi_base:
 	movzx	edi, byte [r12]
 	test	dil, dil
 	jz		.done
+
 	mov		rsi, r13
 	mov		rcx, r14
-	call	find_char
+	call	get_char_index
+
 	test	rax, rax
 	js		.done				; if négatif (-1), stop
+
 	imul	r15, r14
 	add		r15, rax
+
 	inc		r12
 	jmp		.cv_loop
 
@@ -137,4 +172,5 @@ ft_atoi_base:
 	pop		r13
 	pop		r12
 	pop		rbx
+	pop		rbp
 	ret
