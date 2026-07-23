@@ -172,5 +172,5 @@ ft_atoi_base:
 	pop		r13
 	pop		r12
 	pop		rbx
-	pop		rbp
+	leave
 	ret
