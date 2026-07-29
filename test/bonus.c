@@ -49,11 +49,11 @@ void test_atoi_base(void)
 
 	// --- Bases invalides ---
 	printf("--- Bases invalides (retour attendu: 0) ---\n\n");
-	print_test("42", "0", 0, ft_atoi_base("42", "0"));          // base taille 1
-	print_test("42", "", 0, ft_atoi_base("42", ""));             // base vide
-	print_test("42", "0011", 0, ft_atoi_base("42", "0011"));     // doublon dans base
-	print_test("42", "01+3", 0, ft_atoi_base("42", "01+3"));     // '+' dans base
-	print_test("42", "01-3", 0, ft_atoi_base("42", "01-3"));     // '-' dans base
+	print_test("42", "0", 0, ft_atoi_base("42", "0"));			// base taille 1
+	print_test("42", "", 0, ft_atoi_base("42", ""));			// base vide
+	print_test("42", "0011", 0, ft_atoi_base("42", "0011"));	// doublon dans base
+	print_test("42", "01+3", 0, ft_atoi_base("42", "01+3"));	// '+' dans base
+	print_test("42", "01-3", 0, ft_atoi_base("42", "01-3"));	// '-' dans base
 
 	// --- Espaces et whitespace avant le nombre ---
 	printf("--- Espaces avant le nombre ---\n\n");

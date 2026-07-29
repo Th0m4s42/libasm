@@ -1,5 +1,11 @@
-; ft_strcpy
-; char *strcpy(char *dst, const char *src)
+;	ft_strcpy
+
+;=========================================================================
+;	char	*strcpy(char *dst, const char *src)
+;@brief	
+;@param
+;@return
+;=========================================================================
 
 section .text
 	global ft_strcpy			; make ft_strcpy visible
