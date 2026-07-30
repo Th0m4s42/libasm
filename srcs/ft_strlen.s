@@ -6,14 +6,13 @@
 
 ; Function prototype (reference):
 ;
-;	size_t strlen(const char *s)
+;			size_t strlen(const char *s)
 ;
-; @brief	iterate through a string.
-; 			Return:
-; 				size of the string
-;
-; @param	rdi - string to iterate
-; @return	rax - integer result of incrementation
+; @brief	Iterates through a NUL-terminated string, counting all bytes until
+:			(but not including) the NUL terminator ('\0'), and returns the total
+;			number of characters.
+; @param	rdi - pointer to the NUL-terminated input string
+; @return	rax - length of the string as a size_t (unsigned, always >= 0)
 
 ;========================================================================================
 ; DATA SECTION (not needed here, but kept for structure)
@@ -24,9 +23,13 @@ section .text
 
 ;========================================================================================
 ; FUNCTION: ft_strlen
-; PURPOSE:  Iterate on a string to calculate its lenght
-; INPUT:    rdi = address of the string (s1)
-; OUTPUT:   rax = incrementation
+; PURPOSE:	Computes the length of a NUL-terminated string.
+;			The length is defined as the number of bytes BEFORE
+;			the first NUL terminator ('\0', value 0x00).
+; STACK:    None — all values live in registers (no locals).
+; CLOBBERS:	Nothing. All registers used are caller-saved or
+;           explicitly managed (rax is the return register and
+;           is overwritten, which is expected).
 ;========================================================================================
 
 ft_strlen:
